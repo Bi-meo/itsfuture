@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quiz — HTML CSS JS</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(108,99,255,0.12);
+      border: 1px solid rgba(108,99,255,0.25);
+      color: #a89eff;
+      padding: 6px 14px;
+      border-radius: 100px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+
+    .hero-badge::before {
+      content: '';
+      width: 6px; height: 6px;
+      background: var(--accent);
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.8); }
+    }
+
+    h1 {
+      font-size: 2.4rem;
+      font-weight: 800;
+      line-height: 1.15;
+      margin-bottom: 12px;
+    }
+
+    h1 .gradient {
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .subtitle {
+      color: var(--text-muted);
+      margin-bottom: 32px;
+      font-size: 1rem;
+      line-height: 1.6;
+    }
+
+    .stats-row {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+
+    .stat {
+      flex: 1;
+      text-align: center;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px 12px;
+    }
+
+    .stat-num {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: var(--accent);
+    }
+
+    .stat-label {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    .name-input-wrapper {
+      position: relative;
+    }
+
+    .name-input-wrapper input {
+      padding-left: 48px;
+      font-size: 1.1rem;
+    }
+
+    .input-icon {
+      position: absolute;
+      left: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      font-size: 1.2rem;
+      pointer-events: none;
+    }
+
+    .rules {
+      margin-top: 24px;
+      padding: 16px;
+      background: var(--surface2);
+      border-radius: 12px;
+      border: 1px solid var(--border);
+    }
+
+    .rules-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 700;
+      margin-bottom: 10px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .rule-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.875rem;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    .rule-dot {
+      width: 6px; height: 6px;
+      background: var(--accent);
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="toast-container" id="toastContainer"></div>
+
+  <div class="container">
+    <div class="card">
+      <div class="hero-badge">Trắc Nghiệm</div>
+      <h1>Quiz <span class="gradient">HTML CSS JS</span></h1>
+      <p class="subtitle">Kiểm tra kiến thức lập trình web cơ bản của bạn với 20 câu hỏi thú vị.</p>
+
+      <div class="stats-row">
+        <div class="stat">
+          <div class="stat-num">20</div>
+          <div class="stat-label">Câu hỏi</div>
+        </div>
+        <div class="stat">
+          <div class="stat-num">5:00</div>
+          <div class="stat-label">Thời gian</div>
+        </div>
+        <div class="stat">
+          <div class="stat-num">🏆</div>
+          <div class="stat-label">Xếp hạng</div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="nameInput">Tên của bạn</label>
+        <div class="name-input-wrapper">
+          <span class="input-icon">👤</span>
+          <input type="text" id="nameInput" placeholder="Nhập tên để bắt đầu..." maxlength="30" autocomplete="off" />
+        </div>
+      </div>
+
+      <button class="btn btn-primary btn-full" id="startBtn" onclick="startQuiz()">
+        Bắt đầu Quiz →
+      </button>
+
+      <div class="rules">
+        <div class="rules-title">📋 Lưu ý</div>
+        <div class="rule-item"><div class="rule-dot"></div><span>Mỗi câu hỏi có 4 lựa chọn, chọn đúng 1 đáp án</span></div>
+        <div class="rule-item"><div class="rule-dot"></div><span>Thời gian làm bài: 5 phút</span></div>
+        <div class="rule-item"><div class="rule-dot"></div><span>Kết quả sẽ được lưu vào bảng xếp hạng</span></div>
+        <div class="rule-item"><div class="rule-dot"></div><span><a href="/leaderboard" style="color:var(--accent)">Xem bảng xếp hạng</a> để biết thứ hạng của bạn</span></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="utils.js"></script>
+  <script>
+    const input = document.getElementById('nameInput');
+
+    // Auto-fill saved name
+    const saved = localStorage.getItem('quizUserName');
+    if (saved) input.value = saved;
+
+    input.addEventListener('keydown', e => { if (e.key === 'Enter') startQuiz(); });
+
+    function startQuiz() {
+      const name = input.value.trim();
+      if (!name) { showToast('Vui lòng nhập tên của bạn!', 'error'); input.focus(); return; }
+      if (name.length < 2) { showToast('Tên phải có ít nhất 2 ký tự!', 'error'); return; }
+      localStorage.setItem('quizUserName', name);
+      showToast('Chào ' + name + '! Đang tải câu hỏi...', 'success');
+      setTimeout(() => window.location.href = '/quiz', 800);
+    }
+  </script>
+</body>
+</html>

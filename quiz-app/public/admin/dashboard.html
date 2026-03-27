@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin — Dashboard</title>
+  <link rel="stylesheet" href="../style.css" />
+  <style>
+    body { display: block; padding: 0; }
+
+    .admin-layout {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 240px;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      top: 0; left: 0; bottom: 0;
+      z-index: 40;
+      transition: transform 0.3s;
+    }
+
+    .sidebar-header {
+      padding: 24px 20px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .sidebar-brand {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: var(--text);
+    }
+
+    .sidebar-brand span { color: var(--accent2); }
+
+    .sidebar-user {
+      margin-top: 8px;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .sidebar-nav {
+      flex: 1;
+      padding: 16px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .sidebar-nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 14px;
+      border-radius: 10px;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.9rem;
+      border: none;
+      background: none;
+      width: 100%;
+      text-align: left;
+    }
+
+    .sidebar-nav-item:hover { background: var(--surface2); color: var(--text); }
+    .sidebar-nav-item.active { background: rgba(108,99,255,0.12); color: var(--accent); }
+    .sidebar-nav-item .icon { font-size: 1.1rem; }
+
+    .sidebar-footer {
+      padding: 16px 12px;
+      border-top: 1px solid var(--border);
+    }
+
+    /* Main content */
+    .main {
+      margin-left: 240px;
+      flex: 1;
+      padding: 32px;
+      min-height: 100vh;
+    }
+
+    .page-header {
+      margin-bottom: 28px;
+    }
+
+    .page-header h2 {
+      font-size: 1.6rem;
+      margin-bottom: 4px;
+    }
+
+    .page-header p { color: var(--text-muted); font-size: 0.875rem; }
+
+    /* Sections */
+    .section { display: none; animation: fadeUp 0.3s ease both; }
+    .section.active { display: block; }
+
+    /* Stats */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+    }
+
+    .stat-card-icon { font-size: 1.8rem; margin-bottom: 12px; }
+    .stat-card-num {
+      font-family: 'Syne', sans-serif;
+      font-size: 2rem;
+      font-weight: 800;
+      color: var(--accent);
+      margin-bottom: 4px;
+    }
+
+    .stat-card-label { color: var(--text-muted); font-size: 0.875rem; }
+
+    /* Questions section */
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+
+    .add-form {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+
+    .add-form h3 {
+      font-family: 'Syne', sans-serif;
+      font-size: 1rem;
+      margin-bottom: 20px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .options-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .option-input-wrap {
+      position: relative;
+    }
+
+    .option-input-wrap input { padding-left: 40px; }
+
+    .option-label {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 0.85rem;
+      color: var(--accent);
+    }
+
+    .correct-select {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .correct-btn {
+      flex: 1;
+      min-width: 60px;
+      padding: 10px;
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      background: var(--surface2);
+      color: var(--text-muted);
+      cursor: pointer;
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 0.9rem;
+      transition: all 0.2s;
+    }
+
+    .correct-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .correct-btn.selected { border-color: var(--accent3); background: rgba(67,233,123,0.1); color: var(--accent3); }
+
+    /* Question list */
+    .question-list { display: flex; flex-direction: column; gap: 10px; }
+
+    .q-item {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px 20px;
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      animation: fadeUp 0.3s ease both;
+      transition: border-color 0.2s;
+    }
+
+    .q-item:hover { border-color: var(--accent); }
+
+    .q-num {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      color: var(--accent);
+      font-size: 0.85rem;
+      flex-shrink: 0;
+      width: 28px;
+      padding-top: 2px;
+    }
+
+    .q-content { flex: 1; }
+    .q-text { font-size: 0.95rem; margin-bottom: 8px; line-height: 1.4; }
+
+    .q-options {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .q-opt {
+      font-size: 0.75rem;
+      padding: 3px 10px;
+      border-radius: 6px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+    }
+
+    .q-opt.correct-opt {
+      background: rgba(67,233,123,0.1);
+      border-color: rgba(67,233,123,0.3);
+      color: var(--accent3);
+    }
+
+    .q-delete {
+      flex-shrink: 0;
+      padding: 8px 14px;
+      border-radius: 8px;
+      background: rgba(255,101,132,0.1);
+      border: 1px solid rgba(255,101,132,0.2);
+      color: var(--accent2);
+      cursor: pointer;
+      font-size: 0.8rem;
+      transition: all 0.2s;
+    }
+
+    .q-delete:hover { background: rgba(255,101,132,0.2); }
+
+    .loading-text { text-align: center; padding: 40px; color: var(--text-muted); }
+
+    /* Mobile */
+    @media (max-width: 768px) {
+      .sidebar { transform: translateX(-240px); }
+      .sidebar.open { transform: translateX(0); }
+      .main { margin-left: 0; padding: 16px; padding-top: 72px; }
+      .stats-grid { grid-template-columns: 1fr; }
+      .options-grid { grid-template-columns: 1fr; }
+      .mobile-menu-btn { display: flex; }
+    }
+
+    .mobile-menu-btn {
+      display: none;
+      position: fixed;
+      top: 16px; left: 16px;
+      z-index: 50;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      width: 44px; height: 44px;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 1.2rem;
+    }
+
+    .overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 35;
+    }
+
+    .overlay.show { display: block; }
+  </style>
+</head>
+<body>
+  <div class="toast-container" id="toastContainer"></div>
+
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="spinner"></div>
+    <p>Đang xử lý...</p>
+  </div>
+
+  <button class="mobile-menu-btn" onclick="toggleSidebar()">☰</button>
+  <div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
+
+  <div class="admin-layout">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-brand">Admin<span>Panel</span></div>
+        <div class="sidebar-user" id="sidebarUser">👤 admin</div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <button class="sidebar-nav-item active" onclick="showSection('stats')" id="nav-stats">
+          <span class="icon">📊</span> Thống kê
+        </button>
+        <button class="sidebar-nav-item" onclick="showSection('questions')" id="nav-questions">
+          <span class="icon">❓</span> Câu hỏi
+        </button>
+        <button class="sidebar-nav-item" onclick="showSection('add')" id="nav-add">
+          <span class="icon">➕</span> Thêm câu hỏi
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <button class="btn btn-danger btn-full" onclick="logout()">🚪 Đăng xuất</button>
+      </div>
+    </aside>
+
+    <main class="main">
+      <!-- Stats -->
+      <div class="section active" id="section-stats">
+        <div class="page-header">
+          <h2>📊 Thống kê</h2>
+          <p>Tổng quan hệ thống quiz</p>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-card-icon">📝</div>
+            <div class="stat-card-num" id="statAttempts">—</div>
+            <div class="stat-card-label">Tổng lượt làm bài</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-icon">👥</div>
+            <div class="stat-card-num" id="statUsers">—</div>
+            <div class="stat-card-label">Số người chơi</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-icon">🎯</div>
+            <div class="stat-card-num" id="statAvg">—</div>
+            <div class="stat-card-label">Điểm trung bình</div>
+          </div>
+        </div>
+
+        <div class="add-form">
+          <h3>🏆 Top 5 gần đây</h3>
+          <div id="recentScores" class="loading-text"><div class="spinner"></div></div>
+        </div>
+      </div>
+
+      <!-- Questions list -->
+      <div class="section" id="section-questions">
+        <div class="page-header">
+          <h2>❓ Danh sách câu hỏi</h2>
+          <p>Quản lý ngân hàng câu hỏi</p>
+        </div>
+        <div class="question-list" id="questionList">
+          <div class="loading-text"><div class="spinner"></div></div>
+        </div>
+      </div>
+
+      <!-- Add question -->
+      <div class="section" id="section-add">
+        <div class="page-header">
+          <h2>➕ Thêm câu hỏi</h2>
+          <p>Bổ sung câu hỏi mới vào database</p>
+        </div>
+
+        <div class="add-form">
+          <h3>Nội dung câu hỏi</h3>
+          <div class="form-group">
+            <label>Câu hỏi</label>
+            <textarea id="newQuestion" rows="3" placeholder="Nhập nội dung câu hỏi..."></textarea>
+          </div>
+
+          <div class="form-group">
+            <label>4 Đáp án</label>
+            <div class="options-grid">
+              <div class="option-input-wrap">
+                <span class="option-label">A</span>
+                <input type="text" id="opt0" placeholder="Đáp án A" />
+              </div>
+              <div class="option-input-wrap">
+                <span class="option-label">B</span>
+                <input type="text" id="opt1" placeholder="Đáp án B" />
+              </div>
+              <div class="option-input-wrap">
+                <span class="option-label">C</span>
+                <input type="text" id="opt2" placeholder="Đáp án C" />
+              </div>
+              <div class="option-input-wrap">
+                <span class="option-label">D</span>
+                <input type="text" id="opt3" placeholder="Đáp án D" />
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Đáp án đúng</label>
+            <div class="correct-select">
+              <button class="correct-btn" onclick="selectCorrect(0)" id="cb0">A</button>
+              <button class="correct-btn" onclick="selectCorrect(1)" id="cb1">B</button>
+              <button class="correct-btn" onclick="selectCorrect(2)" id="cb2">C</button>
+              <button class="correct-btn" onclick="selectCorrect(3)" id="cb3">D</button>
+            </div>
+          </div>
+
+          <button class="btn btn-primary" onclick="addQuestion()">💾 Lưu câu hỏi</button>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="../utils.js"></script>
+  <script>
+    // Auth check
+    if (!localStorage.getItem('adminToken')) window.location.href = '/admin/login';
+
+    const username = localStorage.getItem('adminUsername') || 'admin';
+    document.getElementById('sidebarUser').textContent = '👤 ' + username;
+
+    let selectedCorrect = null;
+
+    function showSection(name) {
+      document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+      document.querySelectorAll('.sidebar-nav-item').forEach(b => b.classList.remove('active'));
+      document.getElementById('section-' + name).classList.add('active');
+      document.getElementById('nav-' + name).classList.add('active');
+
+      if (name === 'stats') loadStats();
+      if (name === 'questions') loadQuestions();
+      closeSidebar();
+    }
+
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('open');
+      document.getElementById('overlay').classList.toggle('show');
+    }
+
+    function closeSidebar() {
+      document.getElementById('sidebar').classList.remove('open');
+      document.getElementById('overlay').classList.remove('show');
+    }
+
+    function selectCorrect(idx) {
+      selectedCorrect = idx;
+      document.querySelectorAll('.correct-btn').forEach((b, i) => b.classList.toggle('selected', i === idx));
+    }
+
+    async function loadStats() {
+      try {
+        const stats = await api('/admin/stats');
+        document.getElementById('statAttempts').textContent = stats.totalAttempts;
+        document.getElementById('statUsers').textContent = stats.totalUsers;
+        document.getElementById('statAvg').textContent = stats.averageScore.toFixed(1);
+
+        const scores = await api('/leaderboard');
+        const el = document.getElementById('recentScores');
+        if (!scores.length) { el.innerHTML = '<p style="color:var(--text-muted)">Chưa có dữ liệu</p>'; return; }
+
+        const medals = ['🥇','🥈','🥉'];
+        el.innerHTML = scores.slice(0,5).map((s,i) => `
+          <div class="lb-item" style="margin-bottom:8px; background:var(--surface2); border-radius:10px; padding:12px 16px; display:flex; align-items:center; gap:12px; border:1px solid var(--border)">
+            <span style="font-size:1.2rem">${medals[i] || (i+1)}</span>
+            <span style="flex:1;font-size:0.9rem">${s.name}</span>
+            <span style="font-family:'Syne',sans-serif;font-weight:800;color:var(--accent)">${s.score}/${s.total||20}</span>
+          </div>
+        `).join('');
+      } catch (e) {
+        showToast('Lỗi tải stats: ' + e.message, 'error');
+      }
+    }
+
+    async function loadQuestions() {
+      const el = document.getElementById('questionList');
+      el.innerHTML = '<div class="loading-text"><div class="spinner"></div></div>';
+      try {
+        const qs = await api('/admin/questions');
+        if (!qs.length) { el.innerHTML = '<div class="loading-text">Chưa có câu hỏi nào</div>'; return; }
+        const LABELS = ['A','B','C','D'];
+        el.innerHTML = qs.map((q, i) => `
+          <div class="q-item" id="qi-${q._id}" style="--i:${i}">
+            <div class="q-num">#${i+1}</div>
+            <div class="q-content">
+              <div class="q-text">${q.question}</div>
+              <div class="q-options">
+                ${q.options.map((o,j) => `<span class="q-opt ${j===q.correct?'correct-opt':''}">${LABELS[j]}: ${o}</span>`).join('')}
+              </div>
+            </div>
+            <button class="q-delete" onclick="deleteQuestion('${q._id}')">🗑 Xóa</button>
+          </div>
+        `).join('');
+      } catch (e) {
+        el.innerHTML = '<div class="loading-text">Lỗi tải câu hỏi</div>';
+        showToast(e.message, 'error');
+      }
+    }
+
+    async function addQuestion() {
+      const question = document.getElementById('newQuestion').value.trim();
+      const opts = ['opt0','opt1','opt2','opt3'].map(id => document.getElementById(id).value.trim());
+
+      if (!question) { showToast('Nhập nội dung câu hỏi!', 'error'); return; }
+      if (opts.some(o => !o)) { showToast('Nhập đủ 4 đáp án!', 'error'); return; }
+      if (selectedCorrect === null) { showToast('Chọn đáp án đúng!', 'error'); return; }
+
+      showLoading(true);
+      try {
+        await api('/admin/questions', {
+          method: 'POST',
+          body: JSON.stringify({ question, options: opts, correct: selectedCorrect })
+        });
+        showToast('Đã thêm câu hỏi thành công!', 'success');
+        // Reset form
+        document.getElementById('newQuestion').value = '';
+        opts.forEach((_, i) => document.getElementById('opt' + i).value = '');
+        document.querySelectorAll('.correct-btn').forEach(b => b.classList.remove('selected'));
+        selectedCorrect = null;
+      } catch (e) {
+        showToast('Lỗi: ' + e.message, 'error');
+      } finally {
+        showLoading(false);
+      }
+    }
+
+    async function deleteQuestion(id) {
+      if (!confirm('Xóa câu hỏi này?')) return;
+      showLoading(true);
+      try {
+        await api('/admin/questions/' + id, { method: 'DELETE' });
+        document.getElementById('qi-' + id)?.remove();
+        showToast('Đã xóa câu hỏi!', 'success');
+      } catch (e) {
+        showToast('Lỗi xóa: ' + e.message, 'error');
+      } finally {
+        showLoading(false);
+      }
+    }
+
+    function logout() {
+      localStorage.removeItem('adminToken');
+      localStorage.removeItem('adminUsername');
+      window.location.href = '/admin/login';
+    }
+
+    // Load stats on init
+    loadStats();
+  </script>
+</body>
+</html>

@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quiz — Bảng xếp hạng</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    body { justify-content: flex-start; padding-top: 80px; padding-bottom: 40px; }
+
+    h1 { font-size: 1.8rem; margin-bottom: 6px; }
+    .subtitle { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 28px; }
+
+    .leaderboard-list { display: flex; flex-direction: column; gap: 10px; }
+
+    .lb-item {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 16px 20px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      transition: all 0.2s;
+      animation: fadeUp 0.4s ease both;
+    }
+
+    .lb-item:hover { border-color: var(--accent); transform: translateX(4px); }
+
+    .lb-item.rank-1 {
+      background: linear-gradient(135deg, rgba(255,215,0,0.08), rgba(255,215,0,0.03));
+      border-color: rgba(255,215,0,0.3);
+    }
+
+    .lb-item.rank-2 {
+      background: linear-gradient(135deg, rgba(192,192,192,0.08), rgba(192,192,192,0.03));
+      border-color: rgba(192,192,192,0.25);
+    }
+
+    .lb-item.rank-3 {
+      background: linear-gradient(135deg, rgba(205,127,50,0.1), rgba(205,127,50,0.03));
+      border-color: rgba(205,127,50,0.25);
+    }
+
+    .lb-item.current-user { border-color: var(--accent) !important; background: rgba(108,99,255,0.08) !important; }
+
+    .rank-badge {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Syne', sans-serif;
+      font-size: 1rem;
+      font-weight: 800;
+      flex-shrink: 0;
+      background: var(--border);
+      color: var(--text-muted);
+    }
+
+    .rank-badge.gold { background: rgba(255,215,0,0.2); color: #ffd700; }
+    .rank-badge.silver { background: rgba(192,192,192,0.2); color: #c0c0c0; }
+    .rank-badge.bronze { background: rgba(205,127,50,0.2); color: #cd7f32; }
+
+    .lb-name {
+      flex: 1;
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+
+    .lb-you {
+      font-size: 0.7rem;
+      background: rgba(108,99,255,0.15);
+      color: var(--accent);
+      padding: 2px 8px;
+      border-radius: 100px;
+      margin-left: 8px;
+    }
+
+    .lb-score {
+      text-align: right;
+    }
+
+    .lb-score-num {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: var(--accent);
+    }
+
+    .lb-score-pct {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .lb-date {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      text-align: right;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--text-muted);
+    }
+
+    .empty-icon { font-size: 3rem; margin-bottom: 12px; }
+
+    .actions-row {
+      display: flex;
+      gap: 12px;
+      margin-top: 24px;
+    }
+
+    .lb-item { animation-delay: calc(var(--i) * 0.06s); }
+  </style>
+</head>
+<body>
+  <div class="toast-container" id="toastContainer"></div>
+
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="spinner"></div>
+    <p>Đang tải...</p>
+  </div>
+
+  <nav class="nav">
+    <a href="/" class="nav-brand">Quiz<span>JS</span></a>
+    <div class="nav-links">
+      <a href="/" class="nav-link">🏠 Trang chủ</a>
+      <a href="/leaderboard" class="nav-link active">🏆 Xếp hạng</a>
+    </div>
+  </nav>
+
+  <div class="container">
+    <div class="card">
+      <h1>🏆 Bảng Xếp Hạng</h1>
+      <p class="subtitle">Top 10 người chơi xuất sắc nhất</p>
+
+      <div id="leaderboardContent">
+        <div class="empty-state">
+          <div class="spinner"></div>
+        </div>
+      </div>
+
+      <div class="actions-row">
+        <a href="/" class="btn btn-primary" style="flex:1">Chơi ngay →</a>
+        <button class="btn btn-secondary" onclick="loadLeaderboard()">🔄 Làm mới</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="utils.js"></script>
+  <script>
+    const currentUser = localStorage.getItem('quizUserName');
+
+    function timeAgo(dateStr) {
+      const d = new Date(dateStr), now = new Date();
+      const diff = Math.floor((now - d) / 1000);
+      if (diff < 60) return 'Vừa xong';
+      if (diff < 3600) return Math.floor(diff/60) + ' phút trước';
+      if (diff < 86400) return Math.floor(diff/3600) + ' giờ trước';
+      return Math.floor(diff/86400) + ' ngày trước';
+    }
+
+    async function loadLeaderboard() {
+      showLoading(true);
+      try {
+        const data = await api('/leaderboard');
+        const container = document.getElementById('leaderboardContent');
+
+        if (!data.length) {
+          container.innerHTML = `<div class="empty-state"><div class="empty-icon">🎮</div><p>Chưa có ai làm bài. Hãy là người đầu tiên!</p></div>`;
+          return;
+        }
+
+        const medals = ['gold', 'silver', 'bronze'];
+        const rankEmoji = ['🥇', '🥈', '🥉'];
+
+        container.innerHTML = `<div class="leaderboard-list">${data.map((entry, i) => {
+          const rank = i + 1;
+          const isMe = entry.name === currentUser;
+          const pct = entry.total ? Math.round((entry.score / entry.total) * 100) : 0;
+          const medal = medals[i] || '';
+          return `
+            <div class="lb-item rank-${rank} ${isMe ? 'current-user' : ''}" style="--i:${i}">
+              <div class="rank-badge ${medal}">${rank <= 3 ? rankEmoji[i] : rank}</div>
+              <div class="lb-name">
+                ${entry.name}
+                ${isMe ? '<span class="lb-you">Bạn</span>' : ''}
+              </div>
+              <div class="lb-date">${timeAgo(entry.createdAt)}</div>
+              <div class="lb-score">
+                <div class="lb-score-num">${entry.score}/${entry.total || 20}</div>
+                <div class="lb-score-pct">${pct}%</div>
+              </div>
+            </div>
+          `;
+        }).join('')}</div>`;
+      } catch (e) {
+        showToast('Lỗi tải bảng xếp hạng: ' + e.message, 'error');
+      } finally {
+        showLoading(false);
+      }
+    }
+
+    loadLeaderboard();
+  </script>
+</body>
+</html>

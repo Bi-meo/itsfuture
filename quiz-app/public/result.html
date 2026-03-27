@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quiz — Kết quả</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .result-icon {
+      font-size: 4rem;
+      text-align: center;
+      margin-bottom: 16px;
+      animation: bounceIn 0.6s cubic-bezier(0.36, 0.07, 0.19, 0.97);
+    }
+
+    @keyframes bounceIn {
+      0% { transform: scale(0); opacity: 0; }
+      60% { transform: scale(1.2); }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    .result-name {
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      margin-bottom: 4px;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 2rem;
+      margin-bottom: 8px;
+    }
+
+    .score-display {
+      text-align: center;
+      margin: 28px 0;
+    }
+
+    .score-circle {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 140px;
+      height: 140px;
+      border-radius: 50%;
+      border: 4px solid;
+      margin-bottom: 16px;
+      position: relative;
+    }
+
+    .score-circle.excellent { border-color: var(--accent3); }
+    .score-circle.good { border-color: var(--accent); }
+    .score-circle.ok { border-color: #ffcc00; }
+    .score-circle.poor { border-color: var(--accent2); }
+
+    .score-circle::before {
+      content: '';
+      position: absolute;
+      inset: -4px;
+      border-radius: 50%;
+      background: conic-gradient(var(--accent) var(--pct), transparent var(--pct));
+      opacity: 0.15;
+    }
+
+    .score-num {
+      font-family: 'Syne', sans-serif;
+      font-size: 2.2rem;
+      font-weight: 800;
+      line-height: 1;
+    }
+
+    .score-sub {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+
+    .rank-message {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 28px;
+    }
+
+    .stat-box {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      text-align: center;
+    }
+
+    .stat-box-num {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.4rem;
+      font-weight: 800;
+      margin-bottom: 4px;
+    }
+
+    .stat-box-label {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .correct-num { color: var(--accent3); }
+    .wrong-num { color: var(--accent2); }
+    .pct-num { color: var(--accent); }
+
+    .action-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .submitted-badge {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 12px;
+      background: rgba(67,233,123,0.1);
+      border: 1px solid rgba(67,233,123,0.25);
+      border-radius: 10px;
+      color: var(--accent3);
+      font-size: 0.875rem;
+      font-weight: 500;
+    }
+  </style>
+</head>
+<body>
+  <div class="toast-container" id="toastContainer"></div>
+
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="spinner"></div>
+    <p>Đang lưu kết quả...</p>
+  </div>
+
+  <nav class="nav">
+    <a href="/" class="nav-brand">Quiz<span>JS</span></a>
+    <div class="nav-links">
+      <a href="/leaderboard" class="nav-link">🏆 Xếp hạng</a>
+    </div>
+  </nav>
+
+  <div class="container">
+    <div class="card" id="resultCard" style="opacity:0">
+      <div class="result-icon" id="resultIcon"></div>
+      <div class="result-name" id="resultName"></div>
+      <h1 id="resultTitle"></h1>
+
+      <div class="score-display">
+        <div class="score-circle" id="scoreCircle">
+          <div>
+            <div class="score-num" id="scoreNum"></div>
+            <div class="score-sub" id="scoreSub"></div>
+          </div>
+        </div>
+        <div class="rank-message" id="rankMessage"></div>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-box">
+          <div class="stat-box-num correct-num" id="correctNum"></div>
+          <div class="stat-box-label">✅ Đúng</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-box-num wrong-num" id="wrongNum"></div>
+          <div class="stat-box-label">❌ Sai</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-box-num pct-num" id="pctNum"></div>
+          <div class="stat-box-label">📊 Tỷ lệ</div>
+        </div>
+      </div>
+
+      <div id="submittedBadge" class="submitted-badge" style="display:none; margin-bottom:16px;">
+        ✅ Điểm đã được lưu vào bảng xếp hạng!
+      </div>
+
+      <div class="action-buttons">
+        <a href="/leaderboard" class="btn btn-primary">🏆 Xem bảng xếp hạng</a>
+        <button class="btn btn-secondary" onclick="playAgain()">🔄 Làm lại</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="utils.js"></script>
+  <script>
+    const name = localStorage.getItem('quizUserName');
+    const score = parseInt(localStorage.getItem('quizScore') || '0');
+    const total = parseInt(localStorage.getItem('quizTotal') || '20');
+
+    if (!name) { window.location.href = '/'; }
+
+    const pct = Math.round((score / total) * 100);
+
+    function getResultData() {
+      if (pct >= 90) return { icon: '🏆', title: 'Xuất sắc!', cls: 'excellent', msg: 'Bạn là pro rồi đó! 🎉' };
+      if (pct >= 70) return { icon: '🎯', title: 'Tốt lắm!', cls: 'good', msg: 'Khá giỏi, cố thêm chút nữa!' };
+      if (pct >= 50) return { icon: '👍', title: 'Ổn đó!', cls: 'ok', msg: 'Nền tảng tốt, tiếp tục học nhé!' };
+      return { icon: '💪', title: 'Cần cố gắng!', cls: 'poor', msg: 'Đừng nản, học lại nhé!' };
+    }
+
+    function render() {
+      const d = getResultData();
+      document.getElementById('resultIcon').textContent = d.icon;
+      document.getElementById('resultName').textContent = name;
+      document.getElementById('resultTitle').textContent = d.title;
+      document.getElementById('scoreNum').textContent = score;
+      document.getElementById('scoreSub').textContent = `/ ${total}`;
+      document.getElementById('rankMessage').textContent = d.msg;
+      document.getElementById('scoreCircle').classList.add(d.cls);
+      document.getElementById('scoreCircle').style.setProperty('--pct', `${pct}%`);
+      document.getElementById('correctNum').textContent = score;
+      document.getElementById('wrongNum').textContent = total - score;
+      document.getElementById('pctNum').textContent = pct + '%';
+
+      // Animate in
+      const card = document.getElementById('resultCard');
+      card.style.opacity = '1';
+      card.style.animation = 'fadeUp 0.5s ease both';
+    }
+
+    async function submitScore() {
+      showLoading(true);
+      try {
+        await api('/submit-score', {
+          method: 'POST',
+          body: JSON.stringify({ name, score, total })
+        });
+        document.getElementById('submittedBadge').style.display = 'flex';
+        showToast('Điểm đã được lưu!', 'success');
+      } catch (e) {
+        showToast('Lỗi lưu điểm: ' + e.message, 'error');
+      } finally {
+        showLoading(false);
+      }
+    }
+
+    function playAgain() {
+      localStorage.removeItem('quizScore');
+      localStorage.removeItem('quizTotal');
+      window.location.href = '/';
+    }
+
+    render();
+    submitScore();
+  </script>
+</body>
+</html>

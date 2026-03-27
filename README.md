@@ -154,3 +154,8 @@ Password: admin123
 
 - href vào quiz-app/public/index.html
 - hết r. có viết lại cái readme.md thì viết cái mới
+
+
+
+
+  ### MADE BY NAMNOT and FRIENDS

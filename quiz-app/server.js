@@ -4,9 +4,9 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const path = require('path');
 
-const authRoutes = require('./routes/auth');
-const questionRoutes = require('./routes/questions');
-const scoreRoutes = require('./routes/scores');
+const authRoutes = require('./routers/auth');
+const questionRoutes = require('./routers/questions');
+const scoreRoutes = require('./routers/scores');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
